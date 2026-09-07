@@ -52,6 +52,7 @@ def test_get_tasks(client, create_task):
     assert len(data) == 1
     assert data[0]["id"] == task.task_id
     assert data[0]["task"] == "Task1"
+    assert data[0]["priority"] == "Medium"
 
 
 def test_get_task_valid(client, create_task):
@@ -61,6 +62,7 @@ def test_get_task_valid(client, create_task):
     assert response.status_code == 200
     assert data["id"] == task.task_id
     assert data["task"] == "Task1"
+    assert data["priority"] == "Medium"
 
 
 def test_get_task_invalid(client):
@@ -86,12 +88,22 @@ def test_create_project_fail(client):
 
 def test_create_task_success(client, create_project):
     project = create_project("P", True)
-    payload = {"project_id": project.project_id, "task": "New Task", "status": False}
+    payload = {
+        "project_id": project.project_id,
+        "task": "New Task",
+        "status": False,
+        "priority": "High",
+    }
     response = client.post("/api/tasks", json=payload)
     data = json.loads(response.data)
     assert response.status_code == 201
     assert "id" in data
     assert data["message"] == "Task created"
+
+    created_id = data["id"]
+    get_res = client.get(f"/api/tasks/{created_id}")
+    task_data = json.loads(get_res.data)
+    assert task_data["priority"] == "High"
 
 
 def test_create_task_fail(client):
@@ -124,7 +136,7 @@ def test_update_project_fail(client):
 
 def test_update_task_success(client, create_task, app):
     task = create_task("OldTask", True)
-    payload = {"task": "NewTask", "status": False}
+    payload = {"task": "NewTask", "status": False, "priority": "Low"}
     response = client.put(f"/api/tasks/{task.task_id}", json=payload)
     data = json.loads(response.data)
     assert response.status_code == 200
@@ -134,6 +146,7 @@ def test_update_task_success(client, create_task, app):
         updated = db.session.get(Tasks, task.task_id)
         assert updated.task == "NewTask"
         assert updated.status is False
+        assert updated.priority == "Low"
 
 
 def test_update_task_fail(client):

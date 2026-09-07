@@ -84,9 +84,10 @@ def add_task():
             proj.active = False
 
     status = bool(int(request.form.get("status")))
+    priority = request.form.get("priority", "Medium")
 
     # add the new task
-    new_task = Tasks(project_id, task, status)
+    new_task = Tasks(project_id, task, status, priority)
     db.session.add(new_task)
     db.session.commit()
     return redirect("/")
@@ -277,6 +278,7 @@ def api_get_tasks():
                     "project_id": t.project_id,
                     "task": t.task,
                     "status": t.status,
+                    "priority": t.priority,
                 }
                 for t in tasks
             ]
@@ -312,6 +314,7 @@ def api_get_task(id):
                 "project_id": task.project_id,
                 "task": task.task,
                 "status": task.status,
+                "priority": task.priority,
             }
         ),
         200,
@@ -367,6 +370,8 @@ def api_create_task():
               type: string
             status:
               type: boolean
+            priority:
+              type: string
     responses:
       201:
         description: Task created
@@ -374,7 +379,8 @@ def api_create_task():
     data = request.get_json()
     if not data or "task" not in data or "project_id" not in data:
         return jsonify({"error": "Missing task or project_id"}), 400
-    task = Tasks(data["project_id"], data["task"], data.get("status", True))
+    priority = data.get("priority", "Medium")
+    task = Tasks(data["project_id"], data["task"], data.get("status", True), priority)
     db.session.add(task)
     db.session.commit()
     return jsonify({"message": "Task created", "id": task.task_id}), 201
@@ -436,6 +442,8 @@ def api_update_task(id):
               type: string
             status:
               type: boolean
+            priority:
+              type: string
     responses:
       200:
         description: Task updated
@@ -446,6 +454,7 @@ def api_update_task(id):
         return jsonify({"error": "Task not found"}), 404
     task.task = data.get("task", task.task)
     task.status = data.get("status", task.status)
+    task.priority = data.get("priority", task.priority)
     db.session.commit()
     return jsonify({"message": "Task updated"}), 200
 

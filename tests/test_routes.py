@@ -111,6 +111,24 @@ def test_add_task_existing_project_used(client, app):
         assert task.task == "Task X"
 
 
+def test_add_task_with_explicit_priority(client, app):
+    response = client.post(
+        "/add",
+        data={
+            "task": "High Priority Task",
+            "project": "Work",
+            "status": "1",
+            "priority": "High",
+        },
+    )
+    assert response.status_code == 302
+
+    with app.app_context():
+        task = Tasks.query.filter_by(task="High Priority Task").first()
+        assert task is not None
+        assert task.priority == "High"
+
+
 # Test /close
 
 

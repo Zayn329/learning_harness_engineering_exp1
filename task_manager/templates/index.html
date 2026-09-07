@@ -94,6 +94,12 @@
               <option value=1 selected>Open</option>
               <option value=0>Close</option>
             </select>
+            <span class="input-group-addon container-fluid">Priority</span>
+            <select id="priority" name="priority" class="form-control">
+              <option value="Low">Low</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="High">High</option>
+            </select>
           </div>
           <div class="input-group">
             <span class="spacer">&nbsp;</span>
@@ -148,6 +154,7 @@
             <thead>
               <tr>
                 <td style="width:100%">DESCRIPTION</td>
+                <td>PRIORITY</td>
                 <td>STATUS</td>
                 <td align="center">
                   <a href="/remove/{{ active }}">
@@ -174,6 +181,11 @@
                   <i class="fas fa-pencil-alt edit-desc" title="Edit Description"></i>
                 </td>
                 {% endif %}
+                <td align="center">
+                  <span class="label {% if task.priority == 'High' %}label-danger{% elif task.priority == 'Low' %}label-info{% else %}label-warning{% endif %}">
+                    {{ task.priority }}
+                  </span>
+                </td>
                 <td align="center">
                   <a href="/close/{{ task.task_id }}">
                     {% if task.status %}
