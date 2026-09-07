@@ -27,3 +27,16 @@ def test_task_model_priority_explicit(app, create_project):
 
     with app.app_context():
         assert task.priority == "High"
+
+
+def test_task_model_priority_invalid_fallback(app, create_project):
+    from task_manager import db
+    from task_manager.models import Tasks
+
+    project = create_project(name="Invalid Priority Project")
+    task = Tasks(project_id=project.project_id, task="Invalid Task", status=True, priority="Urgent")
+    db.session.add(task)
+    db.session.commit()
+
+    with app.app_context():
+        assert task.priority == "Medium"

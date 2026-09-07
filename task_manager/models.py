@@ -25,6 +25,9 @@ class Projects(db.Model):
         return "<Project {}>".format(self.project_name)
 
 
+VALID_PRIORITIES = {"Low", "Medium", "High"}
+
+
 class Tasks(db.Model):
     """Tasks schema"""
 
@@ -38,7 +41,7 @@ class Tasks(db.Model):
         self.project_id = project_id
         self.task = task
         self.status = status
-        self.priority = priority
+        self.priority = priority if priority in VALID_PRIORITIES else "Medium"
 
     def __repr__(self):
         return f"<Task {self.task}>"
