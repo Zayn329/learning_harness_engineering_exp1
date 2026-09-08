@@ -85,6 +85,8 @@ def add_task():
 
     status = bool(int(request.form.get("status")))
     priority = request.form.get("priority", "Medium")
+    if priority not in {"Low", "Medium", "High"}:
+        priority = "Medium"
 
     # add the new task
     new_task = Tasks(project_id, task, status, priority)
@@ -376,10 +378,12 @@ def api_create_task():
       201:
         description: Task created
     """
-    data = request.get_json()
+    data = request.get_json() or {}
     if not data or "task" not in data or "project_id" not in data:
         return jsonify({"error": "Missing task or project_id"}), 400
     priority = data.get("priority", "Medium")
+    if priority not in {"Low", "Medium", "High"}:
+        priority = "Medium"
     task = Tasks(data["project_id"], data["task"], data.get("status", True), priority)
     db.session.add(task)
     db.session.commit()
@@ -448,13 +452,14 @@ def api_update_task(id):
       200:
         description: Task updated
     """
-    data = request.get_json()
+    data = request.get_json() or {}
     task = db.session.get(Tasks, id)
     if not task:
         return jsonify({"error": "Task not found"}), 404
     task.task = data.get("task", task.task)
     task.status = data.get("status", task.status)
-    task.priority = data.get("priority", task.priority)
+    if "priority" in data and data["priority"] in {"Low", "Medium", "High"}:
+        task.priority = data["priority"]
     db.session.commit()
     return jsonify({"message": "Task updated"}), 200
 
