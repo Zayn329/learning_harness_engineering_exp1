@@ -8,6 +8,44 @@ def test_home_page(client):
     assert response.status_code == 200
 
 
+def test_task_search_normal_match(client, create_project, create_task):
+    proj = create_project("Project Alpha")
+    create_task("Buy groceries", status=True, project=proj)
+    create_task("Clean room", status=True, project=proj)
+
+    response = client.get("/?q=groceries")
+    assert response.status_code == 200
+    assert b"Buy groceries" in response.data
+    assert b"Clean room" not in response.data
+
+
+def test_task_search_case_insensitive(client, create_task):
+    create_task("Buy GROCERIES", status=True)
+
+    response = client.get("/?q=groceries")
+    assert response.status_code == 200
+    assert b"Buy GROCERIES" in response.data
+
+
+def test_task_search_no_match(client, create_task):
+    create_task("Buy groceries", status=True)
+
+    response = client.get("/?q=nonexistentterm")
+    assert response.status_code == 200
+    assert b"Buy groceries" not in response.data
+
+
+def test_task_search_empty_query(client, create_project, create_task):
+    proj = create_project("Project Beta")
+    create_task("Buy groceries", status=True, project=proj)
+    create_task("Clean room", status=True, project=proj)
+
+    response = client.get("/?q=")
+    assert response.status_code == 200
+    assert b"Buy groceries" in response.data
+    assert b"Clean room" in response.data
+
+
 def test_index_single_project_auto_activate(client, create_project, app):
     project = create_project(active=False)
     response = client.get("/")
