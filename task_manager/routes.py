@@ -13,13 +13,16 @@ def index():
     It loads the template page and passes on any current tasks and projects
     that exist. Also passes along the currently active tab. If the active tab
     was removed, selects the first project in the Projects database and sets
-    that one as the active one. Can optionally filter tasks by search query `q`.
+    that one as the active one. Can optionally filter tasks by search query `q` or `search`.
     """
     active = None
-    q = request.args.get("q", "").strip()
+    q = request.args.get("q", "").strip() or request.args.get("search", "").strip()
     projects = Projects.query.all()
     if q:
-        tasks = Tasks.query.filter(Tasks.task.ilike(f"%{q}%")).all()
+        escaped_q = q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        tasks = Tasks.query.filter(
+            Tasks.task.ilike(f"%{escaped_q}%", escape="\\")
+        ).all()
     else:
         tasks = Tasks.query.all()
 
@@ -277,13 +280,21 @@ def api_get_tasks():
         type: string
         required: false
         description: Search term to filter tasks by description
+      - name: search
+        in: query
+        type: string
+        required: false
+        description: Alternative search term to filter tasks by description
     responses:
       200:
         description: List of all tasks
     """
     q = request.args.get("q", "").strip() or request.args.get("search", "").strip()
     if q:
-        tasks = Tasks.query.filter(Tasks.task.ilike(f"%{q}%")).all()
+        escaped_q = q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        tasks = Tasks.query.filter(
+            Tasks.task.ilike(f"%{escaped_q}%", escape="\\")
+        ).all()
     else:
         tasks = Tasks.query.all()
     return (

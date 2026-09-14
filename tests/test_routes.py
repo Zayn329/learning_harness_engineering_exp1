@@ -27,6 +27,25 @@ def test_task_search_case_insensitive(client, create_task):
     assert b"Buy GROCERIES" in response.data
 
 
+def test_task_search_with_search_param(client, create_task):
+    create_task("Buy GROCERIES", status=True)
+
+    response = client.get("/?search=groceries")
+    assert response.status_code == 200
+    assert b"Buy GROCERIES" in response.data
+
+
+def test_task_search_wildcard_escaping(client, create_project, create_task):
+    proj = create_project("Project Wildcard")
+    create_task("Task with 100% completion", status=True, project=proj)
+    create_task("Task with 100 items", status=True, project=proj)
+
+    response = client.get("/?q=100%")
+    assert response.status_code == 200
+    assert b"Task with 100% completion" in response.data
+    assert b"Task with 100 items" not in response.data
+
+
 def test_task_search_no_match(client, create_task):
     create_task("Buy groceries", status=True)
 
