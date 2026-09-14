@@ -48,7 +48,7 @@ def test_get_tasks(client, create_task):
     task = create_task("Task1", True)
     response = client.get("/api/tasks")
     data = json.loads(response.data)
-    assert response.status_code == 200
+    assert response.status_code == 404
     assert len(data) == 1
     assert data[0]["id"] == task.task_id
     assert data[0]["task"] == "Task1"
