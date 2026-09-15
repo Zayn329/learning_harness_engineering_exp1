@@ -13,11 +13,18 @@ def index():
     It loads the template page and passes on any current tasks and projects
     that exist. Also passes along the currently active tab. If the active tab
     was removed, selects the first project in the Projects database and sets
-    that one as the active one.
+    that one as the active one. Can optionally filter tasks by search query `q` or `search`.
     """
     active = None
+    q = request.args.get("q", "").strip() or request.args.get("search", "").strip()
     projects = Projects.query.all()
-    tasks = Tasks.query.all()
+    if q:
+        escaped_q = q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        tasks = Tasks.query.filter(
+            Tasks.task.ilike(f"%{escaped_q}%", escape="\\")
+        ).all()
+    else:
+        tasks = Tasks.query.all()
 
     if len(projects) == 1:
         projects[0].active = True
@@ -37,10 +44,10 @@ def index():
 
     if projects:
         return render_template(
-            "index.html", tasks=tasks, projects=projects, active=active
+            "index.html", tasks=tasks, projects=projects, active=active, q=q
         )
     else:
-        return render_template("index.html", tasks=tasks, active=active)
+        return render_template("index.html", tasks=tasks, active=active, q=q)
 
 
 @routes.route("/add", methods=["POST"])
@@ -267,11 +274,29 @@ def api_get_tasks():
     Get all tasks
     ---
     tags: [Tasks]
+    parameters:
+      - name: q
+        in: query
+        type: string
+        required: false
+        description: Search term to filter tasks by description
+      - name: search
+        in: query
+        type: string
+        required: false
+        description: Alternative search term to filter tasks by description
     responses:
       200:
         description: List of all tasks
     """
-    tasks = Tasks.query.all()
+    q = request.args.get("q", "").strip() or request.args.get("search", "").strip()
+    if q:
+        escaped_q = q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        tasks = Tasks.query.filter(
+            Tasks.task.ilike(f"%{escaped_q}%", escape="\\")
+        ).all()
+    else:
+        tasks = Tasks.query.all()
     return (
         jsonify(
             [

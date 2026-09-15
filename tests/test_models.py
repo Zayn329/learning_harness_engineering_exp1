@@ -21,7 +21,9 @@ def test_task_model_priority_explicit(app, create_project):
     from task_manager.models import Tasks
 
     project = create_project(name="Priority Project")
-    task = Tasks(project_id=project.project_id, task="Urgent Task", status=True, priority="High")
+    task = Tasks(
+        project_id=project.project_id, task="Urgent Task", status=True, priority="High"
+    )
     db.session.add(task)
     db.session.commit()
 
@@ -34,7 +36,12 @@ def test_task_model_priority_invalid_fallback(app, create_project):
     from task_manager.models import Tasks
 
     project = create_project(name="Invalid Priority Project")
-    task = Tasks(project_id=project.project_id, task="Invalid Task", status=True, priority="Urgent")
+    task = Tasks(
+        project_id=project.project_id,
+        task="Invalid Task",
+        status=True,
+        priority="Urgent",
+    )
     db.session.add(task)
     db.session.commit()
 

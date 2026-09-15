@@ -55,6 +55,45 @@ def test_get_tasks(client, create_task):
     assert data[0]["priority"] == "Medium"
 
 
+def test_api_get_tasks_search_match(client, create_project, create_task):
+    proj = create_project("API Search Proj")
+    t1 = create_task("Write documentation", True, project=proj)
+    t2 = create_task("Fix bug", True, project=proj)
+
+    response = client.get("/api/tasks?q=doc")
+    data = json.loads(response.data)
+    assert response.status_code == 200
+    assert len(data) == 1
+    assert data[0]["id"] == t1.task_id
+
+    # Test 'search' parameter fallback as well
+    response2 = client.get("/api/tasks?search=bug")
+    data2 = json.loads(response2.data)
+    assert response2.status_code == 200
+    assert len(data2) == 1
+    assert data2[0]["id"] == t2.task_id
+
+
+def test_api_get_tasks_search_no_match(client, create_task):
+    create_task("Write documentation", True)
+
+    response = client.get("/api/tasks?q=nonexistent")
+    data = json.loads(response.data)
+    assert response.status_code == 200
+    assert data == []
+
+
+def test_api_get_tasks_search_empty(client, create_project, create_task):
+    proj = create_project("API Empty Proj")
+    t1 = create_task("Write documentation", True, project=proj)
+    t2 = create_task("Fix bug", True, project=proj)
+
+    response = client.get("/api/tasks?q=")
+    data = json.loads(response.data)
+    assert response.status_code == 200
+    assert len(data) == 2
+
+
 def test_get_task_valid(client, create_task):
     task = create_task("Task1", True)
     response = client.get(f"/api/tasks/{task.task_id}")

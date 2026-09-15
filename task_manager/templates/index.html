@@ -80,7 +80,7 @@
       <h2>Task Manager</h2>
 
       <!-- Task input form -->
-      <form class="navbar-form navbar-left" role="search" action="/add" method="POST">
+      <form class="navbar-form navbar-left" action="/add" method="POST">
         <div class="form-group">
           <div class="input-group">
             <span class="input-group-addon container-fluid">Project</span>
@@ -112,9 +112,29 @@
           </div>
         </div>
       </form>
+
+      <!-- Task search form -->
+      <form class="navbar-form navbar-right" action="/" method="GET" role="search">
+        <div class="form-group">
+          <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Search tasks..." value="{{ q if q else '' }}">
+            <span class="input-group-btn">
+              <button type="submit" class="btn btn-default" title="Search">
+                <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+              </button>
+              {% if q %}
+              <a href="/" class="btn btn-default" title="Clear Search">
+                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+              </a>
+              {% endif %}
+            </span>
+          </div>
+        </div>
+      </form>
+      <div class="clearfix"></div>
     </div><!-- jumbotron -->
 
-    {% if tasks %}
+    {% if tasks or projects or q %}
     <div class="tasks">
       {% if projects %}
       <span id="taksNav" class="container">
